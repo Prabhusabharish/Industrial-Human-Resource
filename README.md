@@ -1,10 +1,10 @@
-Industrial Human Resource Geo-Visualization
+**Industrial Human Resource Geo-Visualization**
 
- Project Overview
+**Project Overview**
 
-This project aims to update and analyze information on the industrial classification of main and marginal workers, excluding cultivators and agricultural laborers, categorized by sex, section, division, and class in India. The primary objective is to provide precise and relevant data for policy-making and employment planning.
+  This project aims to update and analyze information on the industrial classification of main and marginal workers, excluding cultivators and agricultural laborers, categorized by sex, section, division, and class in India. The primary objective is to provide precise and relevant data for policy-making and employment planning.
 
-Dataset
+**Dataset**
 
 The dataset contains state-wise counts of main and marginal workers, both males and females, engaged in various industries such as manufacturing, retail, agriculture, etc.
 
