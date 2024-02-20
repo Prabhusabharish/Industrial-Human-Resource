@@ -22,29 +22,35 @@ st.markdown("<h1 style='text-align: center; color: black;'>Industrial Human Reso
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
-# SELECT = option_menu(
-#     menu_title=None,
-#     options=["Charts & Plots", "Geo - Maps"],
-#     default_index=0,
-#     orientation="horizontal",
-#     styles={"container": {"padding": "0!important", "background-color": "white", "size": "cover", "width": "100"},
-#             "icon": {"color": "black", "font-size": "20px"},
-
-#             "nav-link": {"font-size": "20px", "text-align": "center", "margin": "-2px", "--hover-color": "#6F36AD"},
-#             "nav-link-selected": {"background-color": "#6F36AD"}})
-
-
-#----------------------------------------------------------------------------------------------------------------------------------
-# if SELECT == "Charts & Plots":
-
 data = pd.read_csv("C:/Users/prabh/Downloads/Datascience/Project/CT/final_HR.csv")
 
 unique_states = sorted(data['State'].unique())
-selected_state = st.sidebar.selectbox("Select State", unique_states, key="state_selector")
+selected_state = st.sidebar.selectbox("Select State", unique_states, key="state_selector_unique")
 
-# Filter districts based on the selected state
 filtered_districts = sorted(data[data['State'] == selected_state]['District'].unique())
-selected_district = st.sidebar.selectbox("Select District", filtered_districts, key="district_selector")
+selected_district = st.sidebar.selectbox("Select District", filtered_districts, key="district_selector_unique")
+
+state_data = data[(data['State'] == selected_state)]
+district_data = data[(data['District'] == selected_district)]
+
+st.write(f"Showing data for {selected_state} - {selected_district}")
+
+total_state_workers = state_data['MainWorkersTotalPersons'].sum()
+st.write(f"Total number of state workers: {total_state_workers}")
+total_district_workers = district_data['MainWorkersTotalPersons'].sum()
+st.write(f"Total number of district workers: {total_district_workers}")
+
+st.subheader("Data Summary")
+st.write(data.describe())
+
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# unique_states = sorted(data['State'].unique())
+# selected_state = st.sidebar.selectbox("Select State", unique_states, key="state_selector")
+
+# # Filter districts based on the selected state
+# filtered_districts = sorted(data[data['State'] == selected_state]['District'].unique())
+# selected_district = st.sidebar.selectbox("Select District", filtered_districts, key="district_selector")
 
 filtered_nic_names = data[data['District'] == selected_district]['NICName'].unique()
 filtered_nic_names = [nic.replace('[', '').replace(']', '').replace("'", "") for nic in filtered_nic_names]
@@ -95,8 +101,44 @@ st.pyplot(fig)
 
 #---------------------------------------------------------------------------------------------
 
-# if SELECT == "Geo - Maps":
+import plotly.express as px
 
+# Filter data for Main, Rural, and Urban workers
+main_cols = ['MainWorkersTotalPersons', 'MainWorkersTotalMales', 'MainWorkersTotalFemales']
+rural_cols = ['MainWorkersRuralPersons', 'MainWorkersRuralMales', 'MainWorkersRuralFemales']
+urban_cols = ['MainWorkersUrbanPersons', 'MainWorkersUrbanMales', 'MainWorkersUrbanFemales']
+
+main_data = data[['State'] + main_cols].groupby('State').sum().reset_index()
+rural_data = data[['State'] + rural_cols].groupby('State').sum().reset_index()
+urban_data = data[['State'] + urban_cols].groupby('State').sum().reset_index()
+
+# Melt the data to have a single column for worker type and another for the count
+main_data_melted = main_data.melt(id_vars='State', var_name='WorkerType', value_name='Count')
+
+# Plotting the differences in counts
+fig = px.bar(main_data_melted, x='State', y='Count', color='WorkerType', 
+             title='Differences in Main, Rural, and Urban Workers Counts (State-wise)',
+             labels={'Count': 'Total Workers Count'},
+             color_discrete_sequence=['#1f77b4', '#ff7f0e', '#2ca02c'],
+             template='plotly_white')
+
+# Update the layout for better visualization
+fig.update_layout(barmode='group', xaxis_title='State', yaxis_title='Total Workers Count (Log Scale)',
+                  showlegend=True, yaxis_type="log")
+
+# Display the chart
+st.plotly_chart(fig)
+
+
+
+
+
+#---------------------------------------------------------------------------------------------
+
+
+
+
+# Geo-Map Visualization
 data = pd.read_csv("C:/Users/prabh/Downloads/Datascience/Project/CT/final_HR.csv")
 
 state_data = data[(data['State'] == selected_state)]
@@ -120,5 +162,5 @@ for idx, row in district_data.iterrows():
     popup_text = f"State: {selected_state}<br>District: {selected_district}<br>Total Workers: {total_workers}<br>Male-Female Ratio: {male_female_ratio}"
     folium.Marker([lat, lon], popup=popup_text).add_to(marker_cluster)
 
-st.components.v1.html(folium_map._repr_html_(), width=700, height=500)
+st.components.v1.html(folium_map._repr_html_(), width=1200, height=500)
 
